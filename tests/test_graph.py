@@ -1,8 +1,8 @@
-"""Tests for depgraph.graph."""
+"""Tests for depagon.graph."""
 
 import pytest
 
-from depgraph.graph import DependencyGraph
+from depagon.graph import DependencyGraph
 
 
 def test_cycle_two_nodes() -> None:

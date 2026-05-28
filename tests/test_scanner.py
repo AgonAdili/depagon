@@ -1,10 +1,10 @@
-"""Tests for depgraph.scanner."""
+"""Tests for depagon.scanner."""
 
 from pathlib import Path
 
 import pytest
 
-from depgraph.scanner import Scanner
+from depagon.scanner import Scanner
 
 
 def test_extracts_imports(tmp_path: Path) -> None:

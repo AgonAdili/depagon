@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "depgraph"
+name = "depagon"
 version = "0.1.0"
 description = "Analyze the import dependency structure of a Python project."
 readme = "README.md"
@@ -13,7 +13,7 @@ requires-python = ">=3.10"
 dependencies = ["rich"]
 
 [project.scripts]
-depgraph = "depgraph.cli:main"
+depagon = "depagon.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/depgraph"]
+packages = ["src/depagon"]

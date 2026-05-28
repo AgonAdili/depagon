@@ -1,11 +1,11 @@
-"""Tests for depgraph.analyzer and renderers."""
+"""Tests for depagon.analyzer and renderers."""
 
 from pathlib import Path
 
 import pytest
 
-from depgraph.analyzer import Analyzer
-from depgraph.renderers import render_dot, render_mermaid
+from depagon.analyzer import Analyzer
+from depagon.renderers import render_dot, render_mermaid
 
 
 def test_unused_import_flagged(tmp_path: Path) -> None:
@@ -56,7 +56,7 @@ def test_dot_output_structure(tmp_path: Path) -> None:
     (tmp_path / "mod.py").write_text("import os\n")
     result = Analyzer().analyze(tmp_path)
     dot = render_dot(result)
-    assert "digraph depgraph" in dot
+    assert "digraph depagon" in dot
     assert "mod" in dot
 
 

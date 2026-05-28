@@ -6,8 +6,8 @@ import ast
 from dataclasses import dataclass
 from pathlib import Path
 
-from depgraph.graph import DependencyGraph
-from depgraph.scanner import ImportInfo, ModuleFile, Scanner
+from depagon.graph import DependencyGraph
+from depagon.scanner import ImportInfo, ModuleFile, Scanner
 
 
 @dataclass

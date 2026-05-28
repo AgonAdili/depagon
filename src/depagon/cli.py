@@ -1,4 +1,4 @@
-"""Command-line entry point for depgraph."""
+"""Command-line entry point for depagon."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import argparse
 import sys
 from pathlib import Path
 
-from depgraph.analyzer import Analyzer
-from depgraph.renderers import render_dot, render_mermaid, render_tree
+from depagon.analyzer import Analyzer
+from depagon.renderers import render_dot, render_mermaid, render_tree
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="depgraph",
+        prog="depagon",
         description="Analyze the import dependency structure of a Python project.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
@@ -39,7 +39,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    """Entry point wired to the ``depgraph`` console-script."""
+    """Entry point wired to the ``depagon`` console-script."""
     parser = _build_parser()
     args = parser.parse_args()
 

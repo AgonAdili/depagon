@@ -1,19 +1,19 @@
-# depgraph
+# depagon
 
-**depgraph** is a Python CLI tool and library that analyzes the import dependency structure of a Python project. It parses every `.py` file using the standard-library `ast` module, builds a directed graph of internal module dependencies, and reports:
+**depagon** is a Python CLI tool and library that analyzes the import dependency structure of a Python project. It parses every `.py` file using the standard-library `ast` module, builds a directed graph of internal module dependencies, and reports:
 
 - **Circular imports** — cycles in the dependency graph.
 - **Unused imports** — names imported but never referenced in the same file.
 - **Coupling metrics** — fan-in (how many modules import a given module) and fan-out (how many modules it imports).
 
-It works as both a command-line tool (`depgraph scan ...`) and an importable library.
+It works as both a command-line tool (`depagon scan ...`) and an importable library.
 
 ---
 
 ## Install
 
 ```bash
-pip install depgraph
+pip install depagon
 ```
 
 Requires Python 3.10 or later. The only runtime dependency is [`rich`](https://github.com/Textualize/rich).
@@ -27,13 +27,13 @@ Requires Python 3.10 or later. The only runtime dependency is [`rich`](https://g
 Renders a dependency tree, coupling table, and findings in the terminal:
 
 ```bash
-depgraph scan path/to/myproject
+depagon scan path/to/myproject
 ```
 
 ### Mermaid diagram
 
 ```bash
-depgraph scan path/to/myproject --output mermaid
+depagon scan path/to/myproject --output mermaid
 ```
 
 Outputs a `graph TD` Mermaid string that can be pasted into any Mermaid-compatible renderer (GitHub Markdown, Mermaid Live Editor, etc.).
@@ -41,7 +41,7 @@ Outputs a `graph TD` Mermaid string that can be pasted into any Mermaid-compatib
 ### Graphviz DOT
 
 ```bash
-depgraph scan path/to/myproject --output dot
+depagon scan path/to/myproject --output dot
 ```
 
 Outputs a DOT string suitable for `dot -Tpng -o graph.png`.
@@ -49,7 +49,7 @@ Outputs a DOT string suitable for `dot -Tpng -o graph.png`.
 ### Show unused imports
 
 ```bash
-depgraph scan path/to/myproject --unused
+depagon scan path/to/myproject --unused
 ```
 
 Unused-import findings are collected during every run but only displayed when `--unused` is passed.
@@ -57,14 +57,14 @@ Unused-import findings are collected during every run but only displayed when `-
 ### CI integration — exit code on cycles
 
 ```bash
-depgraph scan path/to/myproject --detect-cycles
+depagon scan path/to/myproject --detect-cycles
 ```
 
 Exits with status `1` if any circular imports are found, `0` otherwise. Wire it into your CI pipeline:
 
 ```yaml
 # GitHub Actions example
-- run: depgraph scan src/ --detect-cycles
+- run: depagon scan src/ --detect-cycles
 ```
 
 ---
@@ -72,8 +72,8 @@ Exits with status `1` if any circular imports are found, `0` otherwise. Wire it 
 ## Library usage
 
 ```python
-from depgraph import Analyzer
-from depgraph.renderers import render_mermaid
+from depagon import Analyzer
+from depagon.renderers import render_mermaid
 
 result = Analyzer().analyze(Path("src/"))
 
@@ -89,12 +89,12 @@ Public API:
 
 | Symbol | Module |
 |---|---|
-| `Scanner`, `ImportInfo`, `ModuleFile` | `depgraph.scanner` |
-| `DependencyGraph` | `depgraph.graph` |
-| `Analyzer`, `AnalysisResult`, `Finding` | `depgraph.analyzer` |
-| `render_tree`, `render_mermaid`, `render_dot` | `depgraph.renderers` |
+| `Scanner`, `ImportInfo`, `ModuleFile` | `depagon.scanner` |
+| `DependencyGraph` | `depagon.graph` |
+| `Analyzer`, `AnalysisResult`, `Finding` | `depagon.analyzer` |
+| `render_tree`, `render_mermaid`, `render_dot` | `depagon.renderers` |
 
-All of the above are also re-exported from `depgraph` directly.
+All of the above are also re-exported from `depagon` directly.
 
 ---
 
@@ -121,7 +121,7 @@ pip install build
 python -m build
 ```
 
-This creates `dist/depgraph-0.1.0-py3-none-any.whl` and a source tarball.
+This creates `dist/depagon-0.1.0-py3-none-any.whl` and a source tarball.
 
 Upload to PyPI (requires a PyPI account and `twine`):
 

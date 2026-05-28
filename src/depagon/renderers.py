@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.tree import Tree
 
-from depgraph.analyzer import AnalysisResult
+from depagon.analyzer import AnalysisResult
 
 _console = Console()
 
@@ -65,7 +65,7 @@ def render_mermaid(result: AnalysisResult) -> str:
 
 def render_dot(result: AnalysisResult) -> str:
     """Return a Graphviz DOT string for the dependency graph."""
-    lines = ["digraph depgraph {", "    rankdir=LR;"]
+    lines = ["digraph depagon {", "    rankdir=LR;"]
     for node in sorted(result.graph.nodes()):
         lines.append(f'    "{node}";')
     for src, dst in sorted(result.graph.edges()):
