@@ -49,7 +49,7 @@ def main() -> None:
             print(f"Error: '{root}' is not a directory.", file=sys.stderr)
             sys.exit(1)
 
-        result = Analyzer().analyze(root)
+        result = Analyzer().analyze(root, show_progress=True)
 
         if not args.unused:
             result.findings = [f for f in result.findings if f.kind != "unused_import"]

@@ -35,10 +35,10 @@ class AnalysisResult:
 class Analyzer:
     """Runs the scanner, builds the dependency graph, and produces findings."""
 
-    def analyze(self, root: Path) -> AnalysisResult:
+    def analyze(self, root: Path, *, show_progress: bool = False) -> AnalysisResult:
         """Scan *root* and return a fully populated :class:`AnalysisResult`."""
         scanner = Scanner()
-        module_files = scanner.scan(root)
+        module_files = scanner.scan(root, show_progress=show_progress)
 
         internal_modules: set[str] = {mf.module_name for mf in module_files}
 

@@ -98,9 +98,49 @@ All of the above are also re-exported from `depagon` directly.
 
 ---
 
+## Skipped directories
+
+The scanner automatically skips the following directory names to avoid scanning virtual environments and build artifacts:
+
+```
+__pycache__  venv  .venv  env  .env  envs  virtualenv  .virtualenv
+node_modules  .tox  .mypy_cache  dist  build  .pytest_cache  .eggs  site-packages
+```
+
+Any directory whose name starts with `.` (hidden directories) is also skipped.
+
+If your environment uses a different name (e.g. `my_env`, `.project_venv`, `py310`), you can exclude it by subclassing `Scanner` and overriding `_SKIP_DIRS`:
+
+```python
+from depagon.scanner import Scanner, _SKIP_DIRS
+
+class MyScanner(Scanner):
+    pass
+
+# Add your custom env name to the skip set
+import depagon.scanner as _s
+_s._SKIP_DIRS = _SKIP_DIRS | {"my_env", "py310", ".project_venv"}
+```
+
+Or build the graph programmatically and pass a custom scanner to the analyzer:
+
+```python
+from pathlib import Path
+import depagon.scanner as scanner_mod
+from depagon.scanner import Scanner, _SKIP_DIRS
+from depagon.analyzer import Analyzer
+
+# Extend the skip set before scanning
+scanner_mod._SKIP_DIRS = _SKIP_DIRS | {"my_env"}
+
+result = Analyzer().analyze(Path("src/"))
+```
+
+---
+
 ## How it works
 
-1. **Scanning** — `Scanner.scan(root)` walks the directory tree (skipping `venv`, `__pycache__`, `.git`, and similar), reads each `.py` file, and parses it with `ast.parse`. Files with syntax errors are skipped with a warning. Every `import` and `from ... import` statement is recorded as an `ImportInfo`.
+1. **Scanning** — `Scanner.scan(root)` walks the directory tree (skipping the directories listed above), reads each `.py` file, and parses it with `ast.parse`. Files with syntax errors are skipped with a warning. Every `import` and `from ... import` statement is recorded as an `ImportInfo`.
 
 2. **Graph construction** — `Analyzer.analyze(root)` resolves each import to its absolute dotted module name, checks whether it refers to a file inside the scanned directory (internal module), and adds a directed edge to a `DependencyGraph`.
 

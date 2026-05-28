@@ -11,6 +11,11 @@ _SKIP_DIRS: frozenset[str] = frozenset(
         "__pycache__",
         "venv",
         ".venv",
+        "env",
+        ".env",
+        "envs",
+        "virtualenv",
+        ".virtualenv",
         "node_modules",
         ".tox",
         ".mypy_cache",
@@ -18,6 +23,7 @@ _SKIP_DIRS: frozenset[str] = frozenset(
         "build",
         ".pytest_cache",
         ".eggs",
+        "site-packages",
     }
 )
 
@@ -55,14 +61,50 @@ class Scanner:
     def __init__(self) -> None:
         self.warnings: list[str] = []
 
-    def scan(self, root: Path) -> list[ModuleFile]:
+    def scan(self, root: Path, *, show_progress: bool = False) -> list[ModuleFile]:
         """Return one :class:`ModuleFile` for every parseable ``.py`` file under *root*."""
         root = root.resolve()
+        paths = list(self._iter_python_files(root))
         results: list[ModuleFile] = []
-        for path in self._iter_python_files(root):
-            module_file = self._parse_file(path, root)
-            if module_file is not None:
-                results.append(module_file)
+
+        if not show_progress:
+            for path in paths:
+                mf = self._parse_file(path, root)
+                if mf is not None:
+                    results.append(mf)
+            return results
+
+        from rich.console import Console as _Console
+        from rich.progress import (
+            BarColumn,
+            MofNCompleteColumn,
+            Progress,
+            SpinnerColumn,
+            TextColumn,
+        )
+
+        _err = _Console(stderr=True)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]Scanning[/bold blue]"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            TextColumn("[dim]{task.fields[filename]}[/dim]"),
+            console=_err,
+            transient=True,
+        ) as bar:
+            task = bar.add_task("Scanning", total=len(paths), filename="")
+            for path in paths:
+                bar.update(task, filename=str(path.relative_to(root)))
+                mf = self._parse_file(path, root)
+                if mf is not None:
+                    results.append(mf)
+                bar.advance(task)
+
+        _err.print(f"[green]Done.[/green] Scanned [bold]{len(paths)}[/bold] file(s), "
+                   f"parsed [bold]{len(results)}[/bold] successfully"
+                   + (f", skipped [yellow]{len(self.warnings)}[/yellow] with errors." if self.warnings else "."))
+
         return results
 
     # ------------------------------------------------------------------
