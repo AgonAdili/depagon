@@ -16,7 +16,7 @@ It works as both a command-line tool (`depagon scan ...`) and an importable libr
 pip install depagon
 ```
 
-Requires Python 3.10 or later. The only runtime dependency is [`rich`](https://github.com/Textualize/rich).
+Requires Python 3.9 or later. The only runtime dependency is [`rich`](https://github.com/Textualize/rich).
 
 ---
 
@@ -45,6 +45,33 @@ depagon scan path/to/myproject --output dot
 ```
 
 Outputs a DOT string suitable for `dot -Tpng -o graph.png`.
+
+### JSON export
+
+```bash
+depagon scan path/to/myproject --output json
+depagon scan path/to/myproject --output json > report.json
+```
+
+Returns a machine-readable JSON object containing `summary`, `nodes`, `edges`, `coupling` (fan-in + fan-out per module), `findings`, and `cross_app`. Pipe it into `jq` or any downstream tool.
+
+### HTML report
+
+```bash
+depagon scan path/to/myproject --output html > report.html
+open report.html
+```
+
+Generates a fully self-contained HTML file (no external dependencies) with:
+
+- **Interactive dependency graph** — force-directed layout, draggable nodes sized by fan-in, coloured by app
+- **Hover tooltips** — fan-in, fan-out, and cycle warnings per module
+- **Click to highlight** — shows a node's direct connections
+- **Filter by app** — dropdown to isolate one top-level package
+- **Search** — highlight matching modules instantly
+- **Coupling report** — sortable table, shows first 10 rows with a **Show more** button for the rest
+- **Findings** — cycles and unused imports as colour-coded cards
+- **Cross-app dependencies** — grouped by source app
 
 ### Show unused imports
 
@@ -92,7 +119,7 @@ Public API:
 | `Scanner`, `ImportInfo`, `ModuleFile` | `depagon.scanner` |
 | `DependencyGraph` | `depagon.graph` |
 | `Analyzer`, `AnalysisResult`, `Finding` | `depagon.analyzer` |
-| `render_tree`, `render_mermaid`, `render_dot` | `depagon.renderers` |
+| `render_tree`, `render_mermaid`, `render_dot`, `render_json`, `render_html` | `depagon.renderers` |
 
 All of the above are also re-exported from `depagon` directly.
 
@@ -105,6 +132,7 @@ The scanner automatically skips the following directory names to avoid scanning 
 ```
 __pycache__  venv  .venv  env  .env  envs  virtualenv  .virtualenv
 node_modules  .tox  .mypy_cache  dist  build  .pytest_cache  .eggs  site-packages
+migrations
 ```
 
 Any directory whose name starts with `.` (hidden directories) is also skipped.
@@ -148,27 +176,7 @@ result = Analyzer().analyze(Path("src/"))
 
 4. **Unused-import detection** — For each file, `ast.walk` collects every `ast.Name` identifier. Any bound import name absent from this set is flagged. This is a conservative heuristic: `import os` is considered used if `os` appears anywhere as an identifier in the file.
 
-5. **Rendering** — Three renderers produce different output formats from the same `AnalysisResult`.
-
----
-
-## Building and publishing
-
-Build a distribution:
-
-```bash
-pip install build
-python -m build
-```
-
-This creates `dist/depagon-0.1.0-py3-none-any.whl` and a source tarball.
-
-Upload to PyPI (requires a PyPI account and `twine`):
-
-```bash
-pip install twine
-twine upload dist/*
-```
+5. **Rendering** — Five renderers produce different output formats from the same `AnalysisResult`: rich terminal tree, Mermaid diagram, Graphviz DOT, JSON, and an interactive HTML report.
 
 ---
 
