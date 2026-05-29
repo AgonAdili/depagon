@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from depagon.analyzer import Analyzer
-from depagon.renderers import render_dot, render_mermaid, render_tree
+from depagon.renderers import render_dot, render_html, render_json, render_mermaid, render_tree
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -21,7 +21,7 @@ def _build_parser() -> argparse.ArgumentParser:
     scan.add_argument("path", type=Path, help="Path to the project root to analyze.")
     scan.add_argument(
         "--output",
-        choices=["tree", "mermaid", "dot"],
+        choices=["tree", "mermaid", "dot", "json", "html"],
         default="tree",
         help="Output format (default: tree).",
     )
@@ -60,6 +60,10 @@ def main() -> None:
             print(render_mermaid(result))
         elif args.output == "dot":
             print(render_dot(result))
+        elif args.output == "json":
+            print(render_json(result))
+        elif args.output == "html":
+            print(render_html(result))
 
         if args.detect_cycles:
             if any(f.kind == "cycle" for f in result.findings):

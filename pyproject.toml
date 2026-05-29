@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "depagon"
-version = "0.1.0"
+version = "0.1.1"
 description = "Analyze the import dependency structure of a Python project."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Agon" }]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = ["rich"]
 
 [project.scripts]

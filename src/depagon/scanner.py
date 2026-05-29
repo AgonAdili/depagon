@@ -24,6 +24,7 @@ _SKIP_DIRS: frozenset[str] = frozenset(
         ".pytest_cache",
         ".eggs",
         "site-packages",
+        "migrations",
     }
 )
 

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>depagon report · 2026-05-29 08:41</title>
+<style>
+:root{--bg:#060B18;--surf:#0D1B2A;--card:#122033;--text:#F0F8FF;--muted:#64748B;
+  --border:#1A2F4A;--blue:#0EA5E9;--green:#10B981;--orange:#F59E0B;--red:#EF4444;
+  --rad:8px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:14px;line-height:1.5;}
+a{color:var(--blue);}
+header{background:var(--surf);border-bottom:1px solid var(--border);
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;}
+.logo{font-size:22px;font-weight:800;color:var(--blue);letter-spacing:-0.5px;}
+.hright{font-size:12px;color:var(--muted);text-align:right;}
+.stats-bar{display:flex;background:var(--surf);border-bottom:1px solid var(--border);
+  overflow-x:auto;}
+.stat{flex:1;min-width:110px;padding:14px 18px;text-align:center;
+  border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat:hover{background:var(--card);}
+.stat-val{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.container{max-width:1400px;margin:0 auto;padding:20px;display:flex;
+  flex-direction:column;gap:20px;}
+.section{background:var(--surf);border:1px solid var(--border);border-radius:var(--rad);
+  overflow:hidden;}
+.section-head{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.section-head h2{font-size:15px;font-weight:700;}
+.badge{background:#1A2F4A;color:var(--muted);font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:10px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.controls select,.controls input{background:var(--card);border:1px solid var(--border);
+  color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;outline:none;}
+.controls select:focus,.controls input:focus{border-color:var(--blue);}
+.btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+  padding:5px 12px;border-radius:6px;font-size:13px;cursor:pointer;}
+.btn:hover{border-color:var(--blue);color:var(--blue);}
+.graph-wrap{position:relative;background:#020810;height:520px;overflow:hidden;}
+#svg{width:100%;height:100%;cursor:grab;display:block;}
+#svg:active{cursor:grabbing;}
+.tooltip{position:absolute;background:#1A2F4A;border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-size:12px;pointer-events:none;
+  max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,.6);z-index:10;display:none;}
+.tt-title{font-weight:700;margin-bottom:6px;word-break:break-all;}
+.tt-row{color:var(--muted);margin-top:2px;}
+.tt-row b{color:var(--text);}
+.legend{padding:10px 18px;border-top:1px solid var(--border);
+  display:flex;flex-wrap:wrap;gap:10px;font-size:12px;}
+.legend-item{display:flex;align-items:center;gap:6px;cursor:pointer;
+  padding:3px 8px;border-radius:4px;}
+.legend-item:hover{background:var(--card);}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.findings-list{padding:14px 18px;display:flex;flex-direction:column;gap:8px;}
+.finding-card{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+  background:var(--card);border-radius:6px;border-left:3px solid transparent;}
+.finding-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;
+  white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.finding-detail{font-size:13px;color:var(--text);}
+.finding-loc{font-size:11px;color:var(--muted);font-family:monospace;margin-top:2px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#080F1C;padding:9px 16px;text-align:left;font-weight:600;
+  font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;
+  cursor:pointer;user-select:none;white-space:nowrap;}
+thead th:hover{color:var(--text);}
+tbody tr{border-top:1px solid #0F2040;}
+tbody tr:hover{background:var(--card);}
+td{padding:8px 16px;}
+.mono{font-family:'Courier New',monospace;font-size:12px;}
+.num{text-align:right;font-weight:600;}
+.dim{color:var(--muted);}
+.empty{padding:28px;text-align:center;color:var(--muted);font-style:italic;}
+.coup-extra.hidden{display:none;}
+.show-more-wrap{padding:12px 18px;border-top:1px solid var(--border);text-align:center;}
+.show-more-btn{padding:7px 20px;font-size:13px;color:var(--blue);border-color:var(--blue);}
+.show-more-btn:hover{background:#0EA5E911;}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <span class="logo">depagon</span>
+    <span style="color:var(--muted);margin-left:10px;font-size:13px">
+      Dependency Analysis Report
+    </span>
+  </div>
+  <div class="hright">Generated 2026-05-29 08:41</div>
+</header>
+
+<div class="stats-bar"><div class="stat"><div class="stat-val" style="color:#0EA5E9">96</div><div class="stat-lbl">Modules</div></div><div class="stat"><div class="stat-val" style="color:#8B5CF6">8</div><div class="stat-lbl">Apps</div></div><div class="stat"><div class="stat-val" style="color:#06B6D4">112</div><div class="stat-lbl">Edges</div></div><div class="stat"><div class="stat-val" style="color:#EF4444">2</div><div class="stat-lbl">Cycles</div></div><div class="stat"><div class="stat-val" style="color:#F59E0B">0</div><div class="stat-lbl">Unused Imports</div></div></div>
+
+<div class="container">
+
+  <!-- Graph -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Dependency Graph</h2>
+      <div class="controls">
+        <select id="app-filter">
+          <option value="">All Apps</option><option value="finance">finance</option><option value="fleet">fleet</option><option value="fleetmgr">fleetmgr</option><option value="hr_payroll">hr_payroll</option><option value="manage">manage</option><option value="master_data">master_data</option><option value="procurement">procurement</option><option value="scripts">scripts</option>
+        </select>
+        <input id="search" type="text" placeholder="Search module..." style="width:180px">
+        <button class="btn" onclick="resetLayout()">Reset</button>
+      </div>
+    </div>
+    <div class="graph-wrap">
+      <svg id="svg"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+    <div class="legend"><span class="legend-item" onclick="filterApp('finance')"><span class="ldot" style="background:#0EA5E9"></span>finance</span><span class="legend-item" onclick="filterApp('fleet')"><span class="ldot" style="background:#10B981"></span>fleet</span><span class="legend-item" onclick="filterApp('fleetmgr')"><span class="ldot" style="background:#F59E0B"></span>fleetmgr</span><span class="legend-item" onclick="filterApp('hr_payroll')"><span class="ldot" style="background:#EF4444"></span>hr_payroll</span><span class="legend-item" onclick="filterApp('manage')"><span class="ldot" style="background:#8B5CF6"></span>manage</span><span class="legend-item" onclick="filterApp('master_data')"><span class="ldot" style="background:#06B6D4"></span>master_data</span><span class="legend-item" onclick="filterApp('procurement')"><span class="ldot" style="background:#EC4899"></span>procurement</span><span class="legend-item" onclick="filterApp('scripts')"><span class="ldot" style="background:#84CC16"></span>scripts</span></div>
+  </div>
+
+  <div class="section"><div class="section-head"><h2>Findings <span class="badge">2</span></h2></div><div class="findings-list"><div class="finding-card" style="border-left-color:#EF4444"><span class="finding-badge" style="background:#EF444422;color:#EF4444">cycle</span><div><div class="finding-detail">finance.models -> master_data.models -> finance.models</div></div></div><div class="finding-card" style="border-left-color:#EF4444"><span class="finding-badge" style="background:#EF444422;color:#EF4444">cycle</span><div><div class="finding-detail">fleet.models -> fleet.models</div></div></div></div></div>
+  <div class="section"><div class="section-head"><h2>Coupling Report</h2><span class="badge">96 modules</span></div><div class="table-wrap"><table><thead><tr><th onclick="sortTbl(0)">Module</th><th onclick="sortTbl(1)">Fan-in ↕</th><th onclick="sortTbl(2)">Fan-out ↕</th></tr></thead><tbody id="coup-tbody"><tr><td class="mono">master_data.models</td><td class="num" data-val="25" style="color:#10B981">25</td><td class="num" data-val="1">1</td></tr><tr><td class="mono">fleet.models</td><td class="num" data-val="17" style="color:#10B981">17</td><td class="num" data-val="2">2</td></tr><tr><td class="mono">finance.models</td><td class="num" data-val="11" style="color:#10B981">11</td><td class="num" data-val="1">1</td></tr><tr><td class="mono">hr_payroll.models</td><td class="num" data-val="9" style="color:#10B981">9</td><td class="num" data-val="1">1</td></tr><tr><td class="mono">procurement.models</td><td class="num" data-val="8" style="color:#10B981">8</td><td class="num" data-val="1">1</td></tr><tr><td class="mono">finance.forms</td><td class="num" data-val="5" style="color:#10B981">5</td><td class="num" data-val="1">1</td></tr><tr><td class="mono">finance.models.cashbook</td><td class="num" data-val="3" style="color:#10B981">3</td><td class="num" data-val="0">0</td></tr><tr><td class="mono">procurement.permissions</td><td class="num" data-val="3" style="color:#10B981">3</td><td class="num" data-val="0">0</td></tr><tr><td class="mono">fleet</td><td class="num" data-val="2" style="color:#10B981">2</td><td class="num" data-val="0">0</td></tr><tr><td class="mono">fleet.permissions</td><td class="num" data-val="2" style="color:#10B981">2</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.salary_calculator</td><td class="num" data-val="2" style="color:#10B981">2</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">master_data.forms</td><td class="num" data-val="2" style="color:#10B981">2</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement</td><td class="num" data-val="2" style="color:#10B981">2</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.api_views</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.forms</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.forms_documents</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.pdf_utils</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.utils.alerts</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.utils.efficiency</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.utils.payroll</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.utils.reports</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.views</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="9">9</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.forms</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.pdf_generator</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.views</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="6">6</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.forms</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.pdf_utils</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.services.approval</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.services.matching</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.services.numbering</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.views</td><td class="num" data-val="1" style="color:#10B981">1</td><td class="num" data-val="8">8</td></tr><tr class="coup-extra hidden"><td class="mono">finance.admin</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.apps</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.models.banks</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.models.forecast</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.models.reference_data</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance.models.vendors</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.services</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance.templatetags</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance.tests</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">finance.urls</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.banks</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="3">3</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.cashbook</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="3">3</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.dashboard</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.forecast</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="3">3</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.master_data</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="4">4</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.reports</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">finance.views.vendors</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="3">3</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.admin</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.apps</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.context</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="4">4</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.management</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.management.commands</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.management.commands.assign_roles</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.tests</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleet.urls</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr.asgi</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr.middleware</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr.settings</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr.urls</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">fleetmgr.wsgi</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.admin</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.apps</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.context</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.management</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.management.commands</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.management.commands.import_employee_salaries</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.management.commands.migrate_drivers_to_employees</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.management.commands.verify_migration</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.templatetags</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.templatetags.payroll_filters</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.tests</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">hr_payroll.urls</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">manage</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">master_data</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">master_data.admin</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">master_data.apps</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.admin</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.apps</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.context</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.management</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.management.commands</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.management.commands.seed_procurement_settings</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.services</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">procurement.urls</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.add_department_columns</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.add_payment_status</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.fix_department_schedule</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.full_department_test</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.inspect_db</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="0">0</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.test_departments</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="1">1</td></tr><tr class="coup-extra hidden"><td class="mono">scripts.test_driver_employee</td><td class="num" data-val="0" style="color:#10B981">0</td><td class="num" data-val="2">2</td></tr></tbody></table></div><div class="show-more-wrap"><button class="btn show-more-btn" onclick="toggleCoupling(this)">Show 86 more modules</button></div></div>
+  <div class="section"><div class="section-head"><h2>Cross-App Dependencies</h2></div><div class="table-wrap"><table><thead><tr><th>App</th><th>Imports from</th></tr></thead><tbody><tr><td>finance</td><td><span style="color:#06B6D4">master_data</span> <span class="dim">(8)</span></td></tr><tr><td>fleet</td><td><span style="color:#06B6D4">master_data</span> <span class="dim">(5)</span></td></tr><tr><td>fleetmgr</td><td><span style="color:#10B981">fleet</span> <span class="dim">(1)</span></td></tr><tr><td>hr_payroll</td><td><span style="color:#06B6D4">master_data</span> <span class="dim">(6)</span>  &nbsp; <span style="color:#10B981">fleet</span> <span class="dim">(3)</span></td></tr><tr><td>master_data</td><td><span style="color:#0EA5E9">finance</span> <span class="dim">(1)</span></td></tr><tr><td>procurement</td><td><span style="color:#06B6D4">master_data</span> <span class="dim">(5)</span></td></tr><tr><td>scripts</td><td><span style="color:#EF4444">hr_payroll</span> <span class="dim">(3)</span>  &nbsp; <span style="color:#10B981">fleet</span> <span class="dim">(1)</span></td></tr></tbody></table></div></div>
+
+  <div style="text-align:center;padding:12px;color:var(--muted);font-size:12px">
+    Generated by <strong style="color:var(--blue)">depagon</strong>
+  </div>
+</div>
+
+<script>
+const DATA = {"nodes": [{"id": "finance", "app": "finance", "color": "#0EA5E9", "fan_in": 1, "fan_out": 0}, {"id": "finance.admin", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.apps", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.forms", "app": "finance", "color": "#0EA5E9", "fan_in": 5, "fan_out": 1}, {"id": "finance.models", "app": "finance", "color": "#0EA5E9", "fan_in": 11, "fan_out": 1}, {"id": "finance.models.banks", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.models.cashbook", "app": "finance", "color": "#0EA5E9", "fan_in": 3, "fan_out": 0}, {"id": "finance.models.forecast", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.models.reference_data", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 0}, {"id": "finance.models.vendors", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.services", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 0}, {"id": "finance.templatetags", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 0}, {"id": "finance.tests", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 0}, {"id": "finance.urls", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 2}, {"id": "finance.views", "app": "finance", "color": "#0EA5E9", "fan_in": 1, "fan_out": 0}, {"id": "finance.views.banks", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 3}, {"id": "finance.views.cashbook", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 3}, {"id": "finance.views.dashboard", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 1}, {"id": "finance.views.forecast", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 3}, {"id": "finance.views.master_data", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 4}, {"id": "finance.views.reports", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 2}, {"id": "finance.views.vendors", "app": "finance", "color": "#0EA5E9", "fan_in": 0, "fan_out": 3}, {"id": "fleet", "app": "fleet", "color": "#10B981", "fan_in": 2, "fan_out": 0}, {"id": "fleet.admin", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 1}, {"id": "fleet.api_views", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.apps", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 1}, {"id": "fleet.context", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 4}, {"id": "fleet.forms", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.forms_documents", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.management", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 0}, {"id": "fleet.management.commands", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 0}, {"id": "fleet.management.commands.assign_roles", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 1}, {"id": "fleet.models", "app": "fleet", "color": "#10B981", "fan_in": 17, "fan_out": 2}, {"id": "fleet.pdf_utils", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.permissions", "app": "fleet", "color": "#10B981", "fan_in": 2, "fan_out": 0}, {"id": "fleet.tests", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 0}, {"id": "fleet.urls", "app": "fleet", "color": "#10B981", "fan_in": 0, "fan_out": 2}, {"id": "fleet.utils.alerts", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.utils.efficiency", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 2}, {"id": "fleet.utils.payroll", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 1}, {"id": "fleet.utils.reports", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 2}, {"id": "fleet.views", "app": "fleet", "color": "#10B981", "fan_in": 1, "fan_out": 9}, {"id": "fleetmgr", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 0}, {"id": "fleetmgr.asgi", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 0}, {"id": "fleetmgr.middleware", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 0}, {"id": "fleetmgr.settings", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 0}, {"id": "fleetmgr.urls", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 1}, {"id": "fleetmgr.wsgi", "app": "fleetmgr", "color": "#F59E0B", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll", "app": "hr_payroll", "color": "#EF4444", "fan_in": 1, "fan_out": 0}, {"id": "hr_payroll.admin", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 1}, {"id": "hr_payroll.apps", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 1}, {"id": "hr_payroll.context", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 1}, {"id": "hr_payroll.forms", "app": "hr_payroll", "color": "#EF4444", "fan_in": 1, "fan_out": 2}, {"id": "hr_payroll.management", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll.management.commands", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll.management.commands.import_employee_salaries", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 1}, {"id": "hr_payroll.management.commands.migrate_drivers_to_employees", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 2}, {"id": "hr_payroll.management.commands.verify_migration", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 2}, {"id": "hr_payroll.models", "app": "hr_payroll", "color": "#EF4444", "fan_in": 9, "fan_out": 1}, {"id": "hr_payroll.pdf_generator", "app": "hr_payroll", "color": "#EF4444", "fan_in": 1, "fan_out": 2}, {"id": "hr_payroll.salary_calculator", "app": "hr_payroll", "color": "#EF4444", "fan_in": 2, "fan_out": 0}, {"id": "hr_payroll.templatetags", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll.templatetags.payroll_filters", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll.tests", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 0}, {"id": "hr_payroll.urls", "app": "hr_payroll", "color": "#EF4444", "fan_in": 0, "fan_out": 2}, {"id": "hr_payroll.views", "app": "hr_payroll", "color": "#EF4444", "fan_in": 1, "fan_out": 6}, {"id": "manage", "app": "manage", "color": "#8B5CF6", "fan_in": 0, "fan_out": 0}, {"id": "master_data", "app": "master_data", "color": "#06B6D4", "fan_in": 0, "fan_out": 0}, {"id": "master_data.admin", "app": "master_data", "color": "#06B6D4", "fan_in": 0, "fan_out": 1}, {"id": "master_data.apps", "app": "master_data", "color": "#06B6D4", "fan_in": 0, "fan_out": 1}, {"id": "master_data.forms", "app": "master_data", "color": "#06B6D4", "fan_in": 2, "fan_out": 1}, {"id": "master_data.models", "app": "master_data", "color": "#06B6D4", "fan_in": 25, "fan_out": 1}, {"id": "procurement", "app": "procurement", "color": "#EC4899", "fan_in": 2, "fan_out": 0}, {"id": "procurement.admin", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 1}, {"id": "procurement.apps", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 1}, {"id": "procurement.context", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 2}, {"id": "procurement.forms", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 2}, {"id": "procurement.management", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 0}, {"id": "procurement.management.commands", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 0}, {"id": "procurement.management.commands.seed_procurement_settings", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 1}, {"id": "procurement.models", "app": "procurement", "color": "#EC4899", "fan_in": 8, "fan_out": 1}, {"id": "procurement.pdf_utils", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 1}, {"id": "procurement.permissions", "app": "procurement", "color": "#EC4899", "fan_in": 3, "fan_out": 0}, {"id": "procurement.services", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 0}, {"id": "procurement.services.approval", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 2}, {"id": "procurement.services.matching", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 1}, {"id": "procurement.services.numbering", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 2}, {"id": "procurement.urls", "app": "procurement", "color": "#EC4899", "fan_in": 0, "fan_out": 2}, {"id": "procurement.views", "app": "procurement", "color": "#EC4899", "fan_in": 1, "fan_out": 8}, {"id": "scripts.add_department_columns", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 0}, {"id": "scripts.add_payment_status", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 0}, {"id": "scripts.fix_department_schedule", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 0}, {"id": "scripts.full_department_test", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 1}, {"id": "scripts.inspect_db", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 0}, {"id": "scripts.test_departments", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 1}, {"id": "scripts.test_driver_employee", "app": "scripts", "color": "#84CC16", "fan_in": 0, "fan_out": 2}], "edges": [["finance.admin", "finance.models"], ["finance.apps", "finance.models"], ["finance.forms", "finance.models"], ["finance.models", "master_data.models"], ["finance.models.banks", "finance.models.cashbook"], ["finance.models.forecast", "finance.models.cashbook"], ["finance.models.vendors", "finance.models.cashbook"], ["finance.urls", "finance"], ["finance.urls", "finance.views"], ["finance.views.banks", "finance.forms"], ["finance.views.banks", "finance.models"], ["finance.views.banks", "master_data.models"], ["finance.views.cashbook", "finance.forms"], ["finance.views.cashbook", "finance.models"], ["finance.views.cashbook", "master_data.models"], ["finance.views.dashboard", "finance.models"], ["finance.views.forecast", "finance.forms"], ["finance.views.forecast", "finance.models"], ["finance.views.forecast", "master_data.models"], ["finance.views.master_data", "finance.forms"], ["finance.views.master_data", "finance.models"], ["finance.views.master_data", "master_data.forms"], ["finance.views.master_data", "master_data.models"], ["finance.views.reports", "finance.models"], ["finance.views.reports", "master_data.models"], ["finance.views.vendors", "finance.forms"], ["finance.views.vendors", "finance.models"], ["finance.views.vendors", "master_data.models"], ["fleet.admin", "fleet.models"], ["fleet.api_views", "fleet.models"], ["fleet.apps", "fleet.models"], ["fleet.context", "fleet.models"], ["fleet.context", "fleet.permissions"], ["fleet.context", "fleet.utils.alerts"], ["fleet.context", "fleet.utils.payroll"], ["fleet.forms", "fleet.models"], ["fleet.forms_documents", "fleet.models"], ["fleet.management.commands.assign_roles", "fleet.models"], ["fleet.models", "fleet.models"], ["fleet.models", "master_data.models"], ["fleet.pdf_utils", "master_data.models"], ["fleet.urls", "fleet"], ["fleet.urls", "fleet.views"], ["fleet.utils.alerts", "fleet.models"], ["fleet.utils.efficiency", "fleet.models"], ["fleet.utils.efficiency", "master_data.models"], ["fleet.utils.payroll", "fleet.models"], ["fleet.utils.reports", "fleet.models"], ["fleet.utils.reports", "master_data.models"], ["fleet.views", "fleet.api_views"], ["fleet.views", "fleet.forms"], ["fleet.views", "fleet.forms_documents"], ["fleet.views", "fleet.models"], ["fleet.views", "fleet.pdf_utils"], ["fleet.views", "fleet.permissions"], ["fleet.views", "fleet.utils.efficiency"], ["fleet.views", "fleet.utils.reports"], ["fleet.views", "master_data.models"], ["fleetmgr.urls", "fleet"], ["hr_payroll.admin", "hr_payroll.models"], ["hr_payroll.apps", "hr_payroll.models"], ["hr_payroll.context", "hr_payroll.models"], ["hr_payroll.forms", "hr_payroll.models"], ["hr_payroll.forms", "master_data.forms"], ["hr_payroll.management.commands.import_employee_salaries", "master_data.models"], ["hr_payroll.management.commands.migrate_drivers_to_employees", "fleet.models"], ["hr_payroll.management.commands.migrate_drivers_to_employees", "master_data.models"], ["hr_payroll.management.commands.verify_migration", "fleet.models"], ["hr_payroll.management.commands.verify_migration", "master_data.models"], ["hr_payroll.models", "master_data.models"], ["hr_payroll.pdf_generator", "hr_payroll.models"], ["hr_payroll.pdf_generator", "hr_payroll.salary_calculator"], ["hr_payroll.urls", "hr_payroll"], ["hr_payroll.urls", "hr_payroll.views"], ["hr_payroll.views", "fleet.models"], ["hr_payroll.views", "hr_payroll.forms"], ["hr_payroll.views", "hr_payroll.models"], ["hr_payroll.views", "hr_payroll.pdf_generator"], ["hr_payroll.views", "hr_payroll.salary_calculator"], ["hr_payroll.views", "master_data.models"], ["master_data.admin", "master_data.models"], ["master_data.apps", "master_data.models"], ["master_data.forms", "master_data.models"], ["master_data.models", "finance.models"], ["procurement.admin", "procurement.models"], ["procurement.apps", "procurement"], ["procurement.context", "procurement.models"], ["procurement.context", "procurement.permissions"], ["procurement.forms", "master_data.models"], ["procurement.forms", "procurement.models"], ["procurement.management.commands.seed_procurement_settings", "procurement.models"], ["procurement.models", "master_data.models"], ["procurement.pdf_utils", "master_data.models"], ["procurement.services.approval", "procurement.models"], ["procurement.services.approval", "procurement.permissions"], ["procurement.services.matching", "procurement.models"], ["procurement.services.numbering", "master_data.models"], ["procurement.services.numbering", "procurement.models"], ["procurement.urls", "procurement"], ["procurement.urls", "procurement.views"], ["procurement.views", "master_data.models"], ["procurement.views", "procurement.forms"], ["procurement.views", "procurement.models"], ["procurement.views", "procurement.pdf_utils"], ["procurement.views", "procurement.permissions"], ["procurement.views", "procurement.services.approval"], ["procurement.views", "procurement.services.matching"], ["procurement.views", "procurement.services.numbering"], ["scripts.full_department_test", "hr_payroll.models"], ["scripts.test_departments", "hr_payroll.models"], ["scripts.test_driver_employee", "fleet.models"], ["scripts.test_driver_employee", "hr_payroll.models"]], "findings": [{"kind": "cycle", "detail": "finance.models -> master_data.models -> finance.models", "location": ""}, {"kind": "cycle", "detail": "fleet.models -> fleet.models", "location": ""}]};
+
+// ── Assign colours ───────────────────────────────────────────────────────────
+const PALETTE=['#0EA5E9','#10B981','#F59E0B','#EF4444','#8B5CF6',
+               '#06B6D4','#EC4899','#84CC16','#F97316','#A855F7'];
+const apps=[...new Set(DATA.nodes.map(n=>n.app))].sort();
+const appColor=Object.fromEntries(apps.map((a,i)=>[a,PALETTE[i%PALETTE.length]]));
+DATA.nodes.forEach(n=>{ if(!n.color) n.color=appColor[n.app]||'#64748B'; });
+
+// ── Force simulation ─────────────────────────────────────────────────────────
+const svgEl=document.getElementById('svg');
+const W=svgEl.clientWidth||900, H=svgEl.clientHeight||520;
+
+const nodeById={};
+const simNodes=DATA.nodes.map(n=>{
+  const o={...n,x:W/2+(Math.random()-.5)*280,y:H/2+(Math.random()-.5)*280,
+            vx:0,vy:0,fixed:false,fx:0,fy:0};
+  nodeById[n.id]=o; return o;
+});
+const simLinks=DATA.edges
+  .map(([s,t])=>({source:nodeById[s],target:nodeById[t]}))
+  .filter(l=>l.source&&l.target);
+
+function simTick(){
+  const REP=2600,SL=95,SK=0.065,GR=0.018,D=0.87;
+  for(let i=0;i<simNodes.length;i++){
+    for(let j=i+1;j<simNodes.length;j++){
+      const a=simNodes[i],b=simNodes[j];
+      const dx=(b.x-a.x)||.01,dy=(b.y-a.y)||.01;
+      const d2=dx*dx+dy*dy,d=Math.sqrt(d2)||1;
+      const f=REP/d2,fx=f*dx/d,fy=f*dy/d;
+      if(!a.fixed){a.vx-=fx;a.vy-=fy;}
+      if(!b.fixed){b.vx+=fx;b.vy+=fy;}
+    }
+  }
+  for(const l of simLinks){
+    const a=l.source,b=l.target;
+    const dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    const f=(d-SL)*SK,fx=f*dx/d,fy=f*dy/d;
+    if(!a.fixed){a.vx+=fx;a.vy+=fy;}
+    if(!b.fixed){b.vx-=fx;b.vy-=fy;}
+  }
+  for(const n of simNodes){
+    if(n.fixed){n.x=n.fx;n.y=n.fy;continue;}
+    n.vx+=(W/2-n.x)*GR; n.vy+=(H/2-n.y)*GR;
+    n.vx*=D; n.vy*=D;
+    n.x=Math.max(55,Math.min(W-55,n.x+n.vx));
+    n.y=Math.max(28,Math.min(H-28,n.y+n.vy));
+  }
+}
+
+// Initial layout — run offline before first paint
+for(let i=0;i<220;i++) simTick();
+
+// ── SVG elements ─────────────────────────────────────────────────────────────
+const NS='http://www.w3.org/2000/svg';
+const mk=(tag,attrs)=>{
+  const e=document.createElementNS(NS,tag);
+  Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));
+  return e;
+};
+
+const defs=mk('defs',{});
+svgEl.appendChild(defs);
+
+// Single arrow marker
+const marker=mk('marker',{id:'arr',markerWidth:'8',markerHeight:'6',
+  refX:'6',refY:'3',orient:'auto'});
+marker.appendChild(mk('path',{d:'M0,0 L8,3 L0,6 Z',fill:'#475569'}));
+defs.appendChild(marker);
+
+const linkG=mk('g',{});
+svgEl.appendChild(linkG);
+const nodeG=mk('g',{});
+svgEl.appendChild(nodeG);
+
+const tip=document.getElementById('tooltip');
+let sel=null;
+
+const linkEls=simLinks.map(l=>{
+  const line=mk('line',{stroke:l.source.color,'stroke-width':'1.3',
+    'stroke-opacity':'.5','marker-end':'url(#arr)'});
+  linkG.appendChild(line);
+  return{el:line,l};
+});
+
+const nodeEls=simNodes.map(n=>{
+  const g=mk('g',{cursor:'pointer'});
+  const ring=mk('circle',{r:'14',fill:'none',stroke:n.color,
+    'stroke-width':'2',opacity:'0'});
+  // Size node by fan_in (slightly bigger for high fan-in)
+  const r=Math.min(10+n.fan_in*0.8,18);
+  const circ=mk('circle',{r,fill:n.color,'fill-opacity':'.82'});
+  const lbl=mk('text',{dy:'3px','text-anchor':'middle',fill:'#F0F8FF',
+    'font-size':'6','pointer-events':'none','font-family':'monospace'});
+  const parts=n.id.split('.');
+  lbl.textContent=parts[parts.length-1];
+  g.append(ring,circ,lbl);
+  nodeG.appendChild(g);
+
+  // Hover
+  g.addEventListener('mouseenter',e=>{
+    ring.setAttribute('opacity','.55');
+    const inCycle=DATA.findings.some(f=>f.kind==='cycle'&&f.detail.includes(n.id));
+    tip.innerHTML=`<div class="tt-title">${n.id}</div>
+      <div class="tt-row">App: <b>${n.app}</b></div>
+      <div class="tt-row">Fan-in: <b>${n.fan_in}</b> &nbsp; Fan-out: <b>${n.fan_out}</b></div>
+      ${inCycle?'<div class="tt-row" style="color:#EF4444;margin-top:4px">&#9888; Involved in a cycle</div>':''}`;
+    tip.style.display='block';
+    moveTip(e);
+  });
+  g.addEventListener('mousemove',moveTip);
+  g.addEventListener('mouseleave',()=>{
+    if(sel!==n) ring.setAttribute('opacity','0');
+    tip.style.display='none';
+  });
+  g.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(sel===n){sel=null;unhighlight();}
+    else{sel=n;highlight(n.id);}
+  });
+
+  // Drag
+  let drag=false;
+  g.addEventListener('mousedown',e=>{drag=true;n.fixed=true;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    const r=svgEl.getBoundingClientRect();
+    n.fx=e.clientX-r.left; n.fy=e.clientY-r.top;
+    n.x=n.fx; n.y=n.fy; draw();
+  });
+  window.addEventListener('mouseup',()=>{if(drag){drag=false;n.fixed=false;}});
+
+  return{g,ring,circ,n};
+});
+
+function moveTip(e){
+  const r=svgEl.getBoundingClientRect();
+  tip.style.left=Math.min(e.clientX-r.left+14,W-270)+'px';
+  tip.style.top=Math.max(0,e.clientY-r.top-10)+'px';
+}
+
+function highlight(id){
+  const conn=new Set([id]);
+  simLinks.forEach(l=>{
+    if(l.source.id===id)conn.add(l.target.id);
+    if(l.target.id===id)conn.add(l.source.id);
+  });
+  nodeEls.forEach(({g,ring,n})=>{
+    g.setAttribute('opacity',conn.has(n.id)?'1':'.1');
+    ring.setAttribute('opacity',n.id===id?'.55':'0');
+  });
+  linkEls.forEach(({el,l})=>{
+    const on=l.source.id===id||l.target.id===id;
+    el.setAttribute('opacity',on?'.9':'.04');
+    el.setAttribute('stroke-width',on?'2':'1');
+  });
+}
+
+function unhighlight(){
+  nodeEls.forEach(({g,ring})=>{g.setAttribute('opacity','1');ring.setAttribute('opacity','0');});
+  linkEls.forEach(({el})=>{el.setAttribute('opacity','.5');el.setAttribute('stroke-width','1.3');});
+}
+
+svgEl.addEventListener('click',()=>{sel=null;unhighlight();});
+
+// ── Draw ─────────────────────────────────────────────────────────────────────
+function draw(){
+  linkEls.forEach(({el,l})=>{
+    const s=l.source,t=l.target;
+    const dx=t.x-s.x,dy=t.y-s.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    const ex=t.x-dx/d*15,ey=t.y-dy/d*15;
+    el.setAttribute('x1',s.x);el.setAttribute('y1',s.y);
+    el.setAttribute('x2',ex);el.setAttribute('y2',ey);
+  });
+  nodeEls.forEach(({g,n})=>g.setAttribute('transform',`translate(${n.x},${n.y})`));
+}
+
+let ticks=0;
+(function loop(){
+  if(ticks<280){simTick();ticks++;}
+  draw();
+  requestAnimationFrame(loop);
+})();
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function filterApp(v){
+  v=v||document.getElementById('app-filter').value;
+  if(!v){unhighlight();return;}
+  nodeEls.forEach(({g,n})=>g.setAttribute('opacity',n.app===v?'1':'.07'));
+  linkEls.forEach(({el,l})=>{
+    const on=l.source.app===v&&l.target.app===v;
+    el.setAttribute('opacity',on?'.85':'.03');
+  });
+}
+document.getElementById('app-filter').onchange=e=>filterApp(e.target.value);
+
+document.getElementById('search').oninput=function(){
+  const q=this.value.toLowerCase().trim();
+  if(!q){unhighlight();return;}
+  const hits=simNodes.filter(n=>n.id.toLowerCase().includes(q));
+  if(hits.length===1){sel=hits[0];highlight(hits[0].id);}
+  else nodeEls.forEach(({g,n})=>
+    g.setAttribute('opacity',n.id.toLowerCase().includes(q)?'1':'.1'));
+};
+
+function resetLayout(){
+  simNodes.forEach(n=>{
+    n.x=W/2+(Math.random()-.5)*280; n.y=H/2+(Math.random()-.5)*280;
+    n.vx=0;n.vy=0;n.fixed=false;
+  });
+  ticks=0; sel=null; unhighlight();
+  document.getElementById('app-filter').value='';
+  document.getElementById('search').value='';
+}
+
+// ── Show more / collapse coupling table ──────────────────────────────────────
+function toggleCoupling(btn){
+  const rows=document.querySelectorAll('.coup-extra');
+  const expanding=rows[0]&&rows[0].classList.contains('hidden');
+  rows.forEach(r=>r.classList.toggle('hidden'));
+  btn.textContent=expanding
+    ?'Show less'
+    :`Show ${rows.length} more module${rows.length!==1?'s':''}`;
+}
+
+// ── Sortable coupling table ───────────────────────────────────────────────────
+let sCol=1,sDir=-1;
+function sortTbl(col){
+  if(sCol===col)sDir*=-1; else{sCol=col;sDir=-1;}
+  const tb=document.getElementById('coup-tbody');
+  const rows=[...tb.querySelectorAll('tr')];
+  rows.sort((a,b)=>{
+    const av=a.cells[col].dataset.val||a.cells[col].textContent;
+    const bv=b.cells[col].dataset.val||b.cells[col].textContent;
+    const an=parseFloat(av),bn=parseFloat(bv);
+    return isNaN(an)||isNaN(bn)?av.localeCompare(bv)*sDir:(an-bn)*sDir;
+  });
+  rows.forEach(r=>tb.appendChild(r));
+}
+</script>
+</body>
+</html>
